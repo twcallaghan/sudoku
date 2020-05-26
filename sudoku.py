@@ -51,8 +51,6 @@ def check_box(board, xbox, ybox, num):
 
 def simple_solver(board):
     emptyspace = find_empty_space(board)
-    print(emptyspace)
-    print_board(board)
 
     if emptyspace is None:
         return True
@@ -67,38 +65,11 @@ def simple_solver(board):
             board[emptyspace[0]][emptyspace[1]] = 0
     return False
 
-    '''
-    while emptyspace is not None:
-        rowcolvalues = []
-        for i in range(0, 9):
-            if board[emptyspace[0]][i] not in rowcolvalues:
-                rowcolvalues.append(board[emptyspace[0]][i])
-            if board[i][emptyspace[1]] not in rowcolvalues:
-                rowcolvalues.append(board[i][emptyspace[1]])
-
-        xbox = emptyspace[0] // 3
-        ybox = emptyspace[1] // 3
-
-        for i in range(xbox, xbox + 3):
-            for j in range(ybox, ybox + 3):
-                if board[i][j] not in rowcolvalues:
-                    rowcolvalues.append(board[i][j])
-
-        rowcolvalues = sorted(rowcolvalues)
-
-        # RIGHT NOW IT IS STUCK ON THE 5TH OR 6TH NUMBER BECAUSE THE FIRST NUMBER THAT WAS INSERTED (3) MAKES IT BREAK
-
-        for i in range(1, 10):
-            if i not in rowcolvalues:
-                board[emptyspace[0]][emptyspace[1]] = i
-                break
-
-        emptyspace = find_empty_space(board)
-        print_board(board)
-        print("\n")
-    '''
 
 if __name__ == '__main__':
     print_board(gameBoard)
-    print(simple_solver(gameBoard))
-    print_board(gameBoard)
+    print("\n")
+    if simple_solver(gameBoard):
+        print_board(gameBoard)
+    else:
+        print("No solution")
