@@ -52,6 +52,8 @@ def check_box(board, xbox, ybox, num):
 def simple_solver(board):
     emptyspace = find_empty_space(board)
 
+    visual_sudoku.showNumbers(board)
+
     if emptyspace is None:
         return True
 
