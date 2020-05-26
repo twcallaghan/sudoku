@@ -30,6 +30,36 @@ def find_empty_space(board):
             if board[i][j] == 0:
                 return i, j
 
+def simple_solver(board):
+    emptyspace = find_empty_space(board)
+    while emptyspace is not None:
+        rowcolvalues = []
+        for i in range(0, 9):
+            if board[emptyspace[0]][i] not in rowcolvalues:
+                rowcolvalues.append(board[emptyspace[0]][i])
+            if board[i][emptyspace[1]] not in rowcolvalues:
+                rowcolvalues.append(board[i][emptyspace[1]])
+
+        xbox = emptyspace[0] // 3
+        ybox = emptyspace[1] // 3
+
+        for i in range(xbox, xbox + 3):
+            for j in range(ybox, ybox + 3):
+                if board[i][j] not in rowcolvalues:
+                    rowcolvalues.append(board[i][j])
+
+        rowcolvalues = sorted(rowcolvalues)
+
+        for i in range(1, 10):
+            if i not in rowcolvalues:
+                board[emptyspace[0]][emptyspace[1]] = i
+                break
+
+        emptyspace = find_empty_space(board)
+        print_board(board)
+        print("\n")
+
 if __name__ == '__main__':
     print_board(gameBoard)
-    print(find_empty_space(gameBoard))
+    print(simple_solver(gameBoard))
+    #print_board(gameBoard)
