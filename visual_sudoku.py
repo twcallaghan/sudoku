@@ -13,6 +13,27 @@ gameBoard = [
     [0, 0, 5, 2, 0, 6, 3, 0, 0]
 ]
 
+# Shows if there was a number there originally, thus the user can't get rid of it
+booleanBoard = [
+    [False, False, False, False, False, False, False, False, False],
+    [False, False, False, False, False, False, False, False, False],
+    [False, False, False, False, False, False, False, False, False],
+    [False, False, False, False, False, False, False, False, False],
+    [False, False, False, False, False, False, False, False, False],
+    [False, False, False, False, False, False, False, False, False],
+    [False, False, False, False, False, False, False, False, False],
+    [False, False, False, False, False, False, False, False, False],
+    [False, False, False, False, False, False, False, False, False],
+    [False, False, False, False, False, False, False, False, False]
+]
+
+def fillBooleanBoard(board):
+    for i in range(9):
+        for j in range(9):
+            if board[i][j] != 0:
+                booleanBoard[i][j] = True
+    print(booleanBoard)
+
 def find_empty_space(board):
     for i in range(9):
         for j in range(9):
@@ -86,7 +107,7 @@ def showNumbers(board):
             DISPLAYSURF.blit(text, (int(ninthwidth * i), int(ninthheight * j)))
     pygame.display.update()
 
-# Takes click position on the board and gets the exact position of the number in that square
+# Takes click position on the board and gets the exact position of the number in that square in terms of index
 def clickPosition(origPosition):
     if origPosition[0] < DISPLAYWIDTH and origPosition[1] < DISPLAYHEIGHT:
         remainderX = origPosition[0] % ((DISPLAYWIDTH * 1.02) // 9)
@@ -97,14 +118,6 @@ def clickPosition(origPosition):
         xIndex = properX // ((DISPLAYWIDTH * 1.02) // 9)
         yIndex = properY // ((DISPLAYHEIGHT * 1.01) // 9)
         return int(xIndex), int(yIndex)
-
-'''
-# Takes a position and selects the correct number from the game board array
-def selectNumber(position):
-    xindex = position[0] // ((DISPLAYWIDTH * 1.02) // 9)
-    yindex = position[1] // ((DISPLAYHEIGHT * 1.01) // 9)
-    return int(xindex), int(yindex)
-'''
 
 def main():
     global FPSCLOCK, DISPLAYSURF, DISPLAYWIDTH, DISPLAYHEIGHT
@@ -120,6 +133,9 @@ def main():
     key = None
     selectedNumber = None
     #startTime = time.time()
+
+    fillBooleanBoard(gameBoard)
+
     while True:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -129,7 +145,7 @@ def main():
             #playTime = round(time.time() - startTime)
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_0:
+                if event.key == pygame.K_0 or event.key:
                     key = 0
                 if event.key == pygame.K_1:
                     key = 1
@@ -153,12 +169,14 @@ def main():
                 if event.key == pygame.K_BACKSPACE or event.key == pygame.K_DELETE:
                     key = 0
 
-                gameBoard[selectedNumber[1]][selectedNumber[0]] = key
+                if not booleanBoard[selectedNumber[1]][selectedNumber[0]]:
+                    gameBoard[selectedNumber[1]][selectedNumber[0]] = key
+                else:
+                    key = None
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 position = pygame.mouse.get_pos()
                 selectedNumber = clickPosition(position)
-                #selectedNumber = selectNumber(correctPosition)
                 key = None
 
         '''
