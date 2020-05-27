@@ -1,6 +1,9 @@
 import pygame, sys, time
 from pygame.locals import *
 
+global FPSCLOCK, DISPLAYSURF, DISPLAYWIDTH, DISPLAYHEIGHT, FPS
+
+# Sudoku game board to be used in the game
 gameBoard = [
     [3, 0, 6, 5, 0, 8, 4, 0, 0],
     [5, 2, 0, 0, 0, 0, 0, 0, 0],
@@ -27,30 +30,35 @@ booleanBoard = [
     [False, False, False, False, False, False, False, False, False]
 ]
 
+# Fills the boolean board according to the gameboard
 def fillBooleanBoard(board):
     for i in range(9):
         for j in range(9):
             if board[i][j] != 0:
                 booleanBoard[i][j] = True
 
+# Finds the next empty space in the board (rows before cols)
 def find_empty_space(board):
     for i in range(9):
         for j in range(9):
             if board[i][j] == 0:
                 return i, j
 
+# Checks the column to see if the number attempting to be inserted is already there
 def check_column(board, col, num, ignorePos):
     for i in range(9):
         if board[i][col] == num and (i, col) != ignorePos:
             return False
     return True
 
+# See check_column, same thing but with the row
 def check_row(board, row, num, ignorePos):
     for i in range(9):
         if board[row][i] == num and (row, i) != ignorePos:
             return False
     return True
 
+# Checks the box that the attempted insertion is happening in to see if the number is already there
 def check_box(board, xbox, ybox, num, ignorePos):
     for i in range(xbox * 3, (xbox * 3) + 3):
         for j in range(ybox * 3, (ybox * 3) + 3):
@@ -58,24 +66,31 @@ def check_box(board, xbox, ybox, num, ignorePos):
                 return False
     return True
 
+# Solves the sudoku board with backtracking given there is a solution
 def simple_solver(board):
     emptyspace = find_empty_space(board)
 
+    # Makes the algorithm visible on the board
     showNumbers(board)
 
+    # Base case for recursion
     if emptyspace is None:
         return True
 
     for i in range(1, 10):
+        # Getting sudoku boxes
         ybox = emptyspace[1] // 3
         xbox = emptyspace[0] // 3
         if check_column(board, emptyspace[1], i, None) and check_row(board, emptyspace[0], i, None) and check_box(board, xbox, ybox, i, None):
             board[emptyspace[0]][emptyspace[1]] = i
+            # Recursive call that allows for basically infinite recursion until a solution is found
             if simple_solver(board):
                 return True
             board[emptyspace[0]][emptyspace[1]] = 0
+    # If no solution
     return False
 
+# Makes the graphical grid out of rectangles
 def makeGrid():
     thirdwidth = DISPLAYWIDTH // 3
     thirdheight = DISPLAYHEIGHT // 3
@@ -92,6 +107,7 @@ def makeGrid():
         for j in range(9):
             pygame.draw.rect(DISPLAYSURF, pygame.Color('gray'), pygame.Rect((ninthwidth * i), (ninthheight * j), ninthwidth, ninthheight), 1)
 
+# Displays numbers on board
 def showNumbers(board):
     ninthwidth = (DISPLAYWIDTH * 1.02) // 9
     ninthheight = (DISPLAYHEIGHT * 1.01) // 9
@@ -118,6 +134,7 @@ def clickPosition(origPosition):
         yIndex = properY // ((DISPLAYHEIGHT * 1.01) // 9)
         return int(xIndex), int(yIndex)
 
+# Checks if the finished board is a valid sudoku board or not
 def validBoard(board):
     for i in range(9):
         for j in range(9):
@@ -126,9 +143,9 @@ def validBoard(board):
             if check_column(board, j, board[i][j], (i, j)) and check_row(board, i, board[i][j], (i, j)) and check_box(board, xbox, ybox, board[i][j], (i, j)):
                 continue
             else:
-                print("Invalid board")
+                # Board is invalid
                 return False
-    print("Valid board. Awesome!")
+    # Board is valid
     return True
 
 def main():
@@ -143,20 +160,18 @@ def main():
 
     key = None
     selectedNumber = None
-    #startTime = time.time()
-
     fillBooleanBoard(gameBoard)
 
+    # Main game loop
     while True:
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
 
-            #playTime = round(time.time() - startTime)
-
+            # If a key is pressed on the keyboard
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_0 or event.key:
+                if event.key == pygame.K_0:
                     key = 0
                 if event.key == pygame.K_1:
                     key = 1
@@ -177,24 +192,37 @@ def main():
                 if event.key == pygame.K_9:
                     key = 9
 
+                # Basically "deleting" a number from the board
                 if event.key == pygame.K_BACKSPACE or event.key == pygame.K_DELETE:
                     key = 0
 
+                # Checking that there is an input for the number and it wasn't a number from the start
                 if selectedNumber is not None and not booleanBoard[selectedNumber[1]][selectedNumber[0]]:
                     gameBoard[selectedNumber[1]][selectedNumber[0]] = key
                 else:
                     key = None
 
+                # If the space bar is pressed the game will attempt to solve itself
                 if event.key == pygame.K_SPACE:
                     key = None
-                    simple_solver(gameBoard)
+                    isSolvable = simple_solver(gameBoard)
+                    # If the board is not solvable
+                    if isSolvable is False:
+                        DISPLAYSURF.fill((255, 255, 255))
+                        font = pygame.font.SysFont("Arial", 50)
+                        text = font.render("Board is not solvable. Keep playing in 5 seconds!", True, pygame.Color('green'))
+                        DISPLAYSURF.blit(text, (int(DISPLAYWIDTH // 6), int(DISPLAYHEIGHT // 4)))
+                        pygame.display.update()
+                        time.sleep(5)
 
+                # If the user presses the "c" key and the board is full, the board will be checked for a validity
                 if event.key == pygame.K_c and find_empty_space(gameBoard) is None:
                     print('here')
                     font = pygame.font.SysFont("Arial", 50)
                     isValid = validBoard(gameBoard)
+                    DISPLAYSURF.fill((255,255,255))
                     if isValid is True:
-                        text = font.render("Congratulations! You win!", True, pygame.Color('red'))
+                        text = font.render("Congratulations! You win! ", True, pygame.Color('red'))
                         DISPLAYSURF.blit(text, (int(DISPLAYWIDTH // 6), int(DISPLAYHEIGHT // 4)))
                         pygame.display.update()
                         time.sleep(5)
@@ -206,12 +234,13 @@ def main():
                         pygame.display.update()
                         time.sleep(5)
 
+            # If the mouse button is pressed, the key is reset to None and the position is found in terms of square
             if event.type == pygame.MOUSEBUTTONDOWN:
                 position = pygame.mouse.get_pos()
                 selectedNumber = clickPosition(position)
                 key = None
 
-
+        # On every pass the grid is repainted, the numbers are repainted, the display is updated, and clock ticks FPS
         makeGrid()
         showNumbers(gameBoard)
         pygame.display.update()

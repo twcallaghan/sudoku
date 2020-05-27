@@ -1,3 +1,4 @@
+# This same code is copied in visual_sudoku. This can solve the sudoku board with basic text and has no graphics
 gameBoard = [
     [3, 0, 6, 5, 0, 8, 4, 0, 0],
     [5, 2, 0, 0, 0, 0, 0, 0, 0],
