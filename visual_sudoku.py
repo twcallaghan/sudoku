@@ -32,7 +32,6 @@ def fillBooleanBoard(board):
         for j in range(9):
             if board[i][j] != 0:
                 booleanBoard[i][j] = True
-    print(booleanBoard)
 
 def find_empty_space(board):
     for i in range(9):
@@ -40,22 +39,22 @@ def find_empty_space(board):
             if board[i][j] == 0:
                 return i, j
 
-def check_column(board, col, num):
+def check_column(board, col, num, ignorePos):
     for i in range(9):
-        if board[i][col] == num:
+        if board[i][col] == num and (i, col) != ignorePos:
             return False
     return True
 
-def check_row(board, row, num):
+def check_row(board, row, num, ignorePos):
     for i in range(9):
-        if board[row][i] == num:
+        if board[row][i] == num and (row, i) != ignorePos:
             return False
     return True
 
-def check_box(board, xbox, ybox, num):
+def check_box(board, xbox, ybox, num, ignorePos):
     for i in range(xbox * 3, (xbox * 3) + 3):
         for j in range(ybox * 3, (ybox * 3) + 3):
-            if board[i][j] == num:
+            if board[i][j] == num and (i, j) != ignorePos:
                 return False
     return True
 
@@ -70,7 +69,7 @@ def simple_solver(board):
     for i in range(1, 10):
         ybox = emptyspace[1] // 3
         xbox = emptyspace[0] // 3
-        if check_column(board, emptyspace[1], i) and check_row(board, emptyspace[0], i) and check_box(board, xbox, ybox, i):
+        if check_column(board, emptyspace[1], i, None) and check_row(board, emptyspace[0], i, None) and check_box(board, xbox, ybox, i, None):
             board[emptyspace[0]][emptyspace[1]] = i
             if simple_solver(board):
                 return True
@@ -118,6 +117,19 @@ def clickPosition(origPosition):
         xIndex = properX // ((DISPLAYWIDTH * 1.02) // 9)
         yIndex = properY // ((DISPLAYHEIGHT * 1.01) // 9)
         return int(xIndex), int(yIndex)
+
+def validBoard(board):
+    for i in range(9):
+        for j in range(9):
+            ybox = j // 3
+            xbox = i // 3
+            if check_column(board, j, board[i][j], (i, j)) and check_row(board, i, board[i][j], (i, j)) and check_box(board, xbox, ybox, board[i][j], (i, j)):
+                continue
+            else:
+                print("Invalid board")
+                return False
+    print("Valid board. Awesome!")
+    return True
 
 def main():
     global FPSCLOCK, DISPLAYSURF, DISPLAYWIDTH, DISPLAYHEIGHT
@@ -169,28 +181,26 @@ def main():
                 if event.key == pygame.K_BACKSPACE or event.key == pygame.K_DELETE:
                     key = 0
 
-                if not booleanBoard[selectedNumber[1]][selectedNumber[0]]:
+                if selectedNumber is not None and not booleanBoard[selectedNumber[1]][selectedNumber[0]]:
                     gameBoard[selectedNumber[1]][selectedNumber[0]] = key
                 else:
                     key = None
+
+                if event.key == pygame.K_SPACE:
+                    key = None
+                    simple_solver(gameBoard)
+
+                if event.key == pygame.K_RETURN:
+                    validBoard(gameBoard)
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 position = pygame.mouse.get_pos()
                 selectedNumber = clickPosition(position)
                 key = None
 
-        '''
-        if board.selected and key != None:
-            board.sketch(key)
-
-        redraw_window(win, board, play_time, strikes)
-        pygame.display.update()
-        '''
-
         DISPLAYSURF.fill((255, 255, 255))
         makeGrid()
         showNumbers(gameBoard)
-        #simple_solver(gameBoard)
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
