@@ -132,9 +132,8 @@ def validBoard(board):
     return True
 
 def main():
-    global FPSCLOCK, DISPLAYSURF, DISPLAYWIDTH, DISPLAYHEIGHT
+    global FPSCLOCK, DISPLAYSURF, DISPLAYWIDTH, DISPLAYHEIGHT, FPS
     FPSCLOCK = pygame.time.Clock()
-    global FPS
     FPS = 60
     pygame.init()
     DISPLAYWIDTH = 800
@@ -190,15 +189,29 @@ def main():
                     key = None
                     simple_solver(gameBoard)
 
-                if event.key == pygame.K_RETURN:
-                    validBoard(gameBoard)
+                if event.key == pygame.K_c and find_empty_space(gameBoard) is None:
+                    print('here')
+                    font = pygame.font.SysFont("Arial", 50)
+                    isValid = validBoard(gameBoard)
+                    if isValid is True:
+                        text = font.render("Congratulations! You win!", True, pygame.Color('red'))
+                        DISPLAYSURF.blit(text, (int(DISPLAYWIDTH // 6), int(DISPLAYHEIGHT // 4)))
+                        pygame.display.update()
+                        time.sleep(5)
+                        pygame.quit()
+                        sys.exit()
+                    else:
+                        text = font.render("Oh no! Your Board is incorrect!", True, pygame.Color('red'))
+                        DISPLAYSURF.blit(text, (int(DISPLAYWIDTH // 6), int(DISPLAYHEIGHT // 4)))
+                        pygame.display.update()
+                        time.sleep(5)
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 position = pygame.mouse.get_pos()
                 selectedNumber = clickPosition(position)
                 key = None
 
-        DISPLAYSURF.fill((255, 255, 255))
+
         makeGrid()
         showNumbers(gameBoard)
         pygame.display.update()
