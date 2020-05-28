@@ -1,32 +1,39 @@
 import random
-import visual_sudoku
+import sudoku
 global masterBoard
 
 
+# Gets the board that is generated
 def getmasterboard():
     return masterBoard
 
 
+# Sets the board that will be generated
 def setmasterboard():
     global masterBoard
-    masterBoard = []
+    masterBoard = [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    ]
+
+    # Makes the first row random to better randomize values for the board
     for i in range(9):
-        rowlist = []
+        randint = random.randint(1, 9)
+        if sudoku.check_row(getmasterboard(), 0, randint, (0, i)) is True:
+            masterBoard[0][i] = randint
 
-        for j in range(9):
-            randnumber = random.randint(0, 9)
-            if randnumber not in rowlist:
-                rowlist.append(randnumber)
-            else:
-                rowlist.append(0)
+    # Solve the board to then make a board that is valid
+    sudoku.simple_solver(getmasterboard())
 
-        masterBoard.append(rowlist)
-
-    for i in range(9):
-        for j in range(9):
-            boxcheck = visual_sudoku.check_box(getmasterboard(), i // 3, j // 3, masterBoard[i][j], (i, j))
-            if boxcheck is False:
-                getmasterboard()[i][j] = 0
-            columncheck = visual_sudoku.check_column(getmasterboard(), j, getmasterboard()[i][j], (i, j))
-            if columncheck is False:
-                getmasterboard()[i][j] = 0
+    # Randomly take places away from the board
+    for i in range(random.randint(35, 64)):
+        randx = random.randint(0, 8)
+        randy = random.randint(0, 8)
+        masterBoard[randx][randy] = 0

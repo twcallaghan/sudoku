@@ -11,6 +11,7 @@ gameBoard = [
     [0, 0, 5, 2, 0, 6, 3, 0, 0]
 ]
 
+
 def print_board(board):
     for i in range(len(board)):
         if i % 3 == 0 and i != 0:
@@ -18,42 +19,50 @@ def print_board(board):
 
         for j in range(len(board[0])):
             if j % 3 == 0 and j != 0:
-                print(" | ", end = "")
+                print(" | ", end="")
 
             if j == 8:
                 print(board[i][j])
             else:
-                print(str(board[i][j]) + " ", end = "")
+                print(str(board[i][j]) + " ", end="")
 
+
+# Finds the next empty space in the board (rows before cols)
 def find_empty_space(board):
     for i in range(9):
         for j in range(9):
             if board[i][j] == 0:
                 return i, j
 
-def check_column(board, col, num):
-    for i in range(9):
-        if board[i][col] == num:
+
+# Checks the column to see if the number attempting to be inserted is already there
+def check_column(board, col, num, ignorepos):
+    for i in range(len(board)):
+        if board[i][col] == num and (i, col) != ignorepos:
             return False
     return True
 
-def check_row(board, row, num):
+
+# See check_column, same thing but with the row
+def check_row(board, row, num, ignorepos):
     for i in range(9):
-        if board[row][i] == num:
+        if board[row][i] == num and (row, i) != ignorepos:
             return False
     return True
 
-def check_box(board, xbox, ybox, num):
+
+# Checks the box that the attempted insertion is happening in to see if the number is already there
+def check_box(board, xbox, ybox, num, ignorepos):
     for i in range(xbox * 3, (xbox * 3) + 3):
         for j in range(ybox * 3, (ybox * 3) + 3):
-            if board[i][j] == num:
+            if board[i][j] == num and (i, j) != ignorepos:
                 return False
     return True
 
+
+# Solves the sudoku board with backtracking given there is a solution
 def simple_solver(board):
     emptyspace = find_empty_space(board)
-
-    visual_sudoku.showNumbers(board)
 
     if emptyspace is None:
         return True
@@ -61,7 +70,8 @@ def simple_solver(board):
     for i in range(1, 10):
         ybox = emptyspace[1] // 3
         xbox = emptyspace[0] // 3
-        if check_column(board, emptyspace[1], i) and check_row(board, emptyspace[0], i) and check_box(board, xbox, ybox, i):
+        if check_column(board, emptyspace[1], i, None) and check_row(board, emptyspace[0], i, None) and \
+                check_box(board, xbox, ybox, i, None):
             board[emptyspace[0]][emptyspace[1]] = i
             if simple_solver(board):
                 return True

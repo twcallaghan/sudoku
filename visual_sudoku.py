@@ -1,107 +1,37 @@
 import pygame
 import sys
 import time
-from pygame.locals import *
+import sudoku
 import board_generator
+from pygame.locals import *
 
 global FPSCLOCK, DISPLAYSURF, DISPLAYWIDTH, DISPLAYHEIGHT, FPS
-global gameboard
+global gameboard, booleanboard
 
-# Sudoku game board to be used in the game
-'''
-gameboard = [
-    [3, 0, 6, 5, 0, 8, 4, 0, 0],
-    [5, 2, 0, 0, 0, 0, 0, 0, 0],
-    [0, 8, 7, 0, 0, 0, 0, 3, 1],
-    [0, 0, 3, 0, 1, 0, 0, 8, 0],
-    [9, 0, 0, 8, 6, 3, 0, 0, 5],
-    [0, 5, 0, 0, 9, 0, 6, 0, 0],
-    [1, 3, 0, 0, 0, 0, 2, 5, 0],
-    [0, 0, 0, 0, 0, 0, 0, 7, 4],
-    [0, 0, 5, 2, 0, 6, 3, 0, 0]
-]
-'''
 
 # Shows if there was a number there originally, thus the user can't get rid of it
-booleanboard = [
-    [False, False, False, False, False, False, False, False, False],
-    [False, False, False, False, False, False, False, False, False],
-    [False, False, False, False, False, False, False, False, False],
-    [False, False, False, False, False, False, False, False, False],
-    [False, False, False, False, False, False, False, False, False],
-    [False, False, False, False, False, False, False, False, False],
-    [False, False, False, False, False, False, False, False, False],
-    [False, False, False, False, False, False, False, False, False],
-    [False, False, False, False, False, False, False, False, False],
-    [False, False, False, False, False, False, False, False, False]
-]
+def resetboolboard():
+    global booleanboard
+    booleanboard = [
+        [False, False, False, False, False, False, False, False, False],
+        [False, False, False, False, False, False, False, False, False],
+        [False, False, False, False, False, False, False, False, False],
+        [False, False, False, False, False, False, False, False, False],
+        [False, False, False, False, False, False, False, False, False],
+        [False, False, False, False, False, False, False, False, False],
+        [False, False, False, False, False, False, False, False, False],
+        [False, False, False, False, False, False, False, False, False],
+        [False, False, False, False, False, False, False, False, False]
+    ]
 
 
 # Fills the boolean board according to the gameboard
 def fillbooleanboard(board):
+    global booleanboard
     for i in range(9):
         for j in range(9):
             if board[i][j] != 0:
                 booleanboard[i][j] = True
-
-
-# Finds the next empty space in the board (rows before cols)
-def find_empty_space(board):
-    for i in range(9):
-        for j in range(9):
-            if board[i][j] == 0:
-                return i, j
-
-
-# Checks the column to see if the number attempting to be inserted is already there
-def check_column(board, col, num, ignorepos):
-    for i in range(9):
-        if board[i][col] == num and (i, col) != ignorepos:
-            return False
-    return True
-
-
-# See check_column, same thing but with the row
-def check_row(board, row, num, ignorepos):
-    for i in range(9):
-        if board[row][i] == num and (row, i) != ignorepos:
-            return False
-    return True
-
-
-# Checks the box that the attempted insertion is happening in to see if the number is already there
-def check_box(board, xbox, ybox, num, ignorepos):
-    for i in range(xbox * 3, (xbox * 3) + 3):
-        for j in range(ybox * 3, (ybox * 3) + 3):
-            if board[i][j] == num and (i, j) != ignorepos:
-                return False
-    return True
-
-
-# Solves the sudoku board with backtracking given there is a solution
-def simple_solver(board):
-    emptyspace = find_empty_space(board)
-
-    # Makes the algorithm visible on the board
-    shownumbers(board)
-
-    # Base case for recursion
-    if emptyspace is None:
-        return True
-
-    for i in range(1, 10):
-        # Getting sudoku boxes
-        ybox = emptyspace[1] // 3
-        xbox = emptyspace[0] // 3
-        if check_column(board, emptyspace[1], i, None) and check_row(board, emptyspace[0], i, None) and \
-                check_box(board, xbox, ybox, i, None):
-            board[emptyspace[0]][emptyspace[1]] = i
-            # Recursive call that allows for basically infinite recursion until a solution is found
-            if simple_solver(board):
-                return True
-            board[emptyspace[0]][emptyspace[1]] = 0
-    # If no solution
-    return False
 
 
 # Makes the graphical grid out of rectangles
@@ -159,8 +89,8 @@ def validboard(board):
         for j in range(9):
             ybox = j // 3
             xbox = i // 3
-            if check_column(board, j, board[i][j], (i, j)) and check_row(board, i, board[i][j], (i, j)) and \
-                    check_box(board, xbox, ybox, board[i][j], (i, j)):
+            if sudoku.check_column(board, j, board[i][j], (i, j)) and sudoku.check_row(board, i, board[i][j], (i, j)) \
+                    and sudoku.check_box(board, xbox, ybox, board[i][j], (i, j)):
                 continue
             else:
                 # Board is invalid
@@ -172,6 +102,7 @@ def validboard(board):
 def main():
     global FPSCLOCK, DISPLAYSURF, DISPLAYWIDTH, DISPLAYHEIGHT, FPS
     global gameboard
+    # Gets a randomly generated board
     board_generator.setmasterboard()
     gameboard = board_generator.getmasterboard()
     FPSCLOCK = pygame.time.Clock()
@@ -184,6 +115,7 @@ def main():
 
     key = None
     selectednumber = None
+    resetboolboard()
     fillbooleanboard(gameboard)
 
     # Main game loop
@@ -229,35 +161,40 @@ def main():
                 # If the space bar is pressed the game will attempt to solve itself
                 if event.key == pygame.K_SPACE:
                     key = None
-                    issolvable = simple_solver(gameboard)
+                    issolvable = sudoku.simple_solver(gameboard)
                     # If the board is not solvable
                     if issolvable is False:
                         DISPLAYSURF.fill((255, 255, 255))
-                        font = pygame.font.SysFont("Arial", 50)
+                        font = pygame.font.SysFont("Arial", 34)
                         text = font.render("Board is not solvable. Keep playing in 5 seconds!", True,
                                            pygame.Color('green'))
-                        DISPLAYSURF.blit(text, (int(DISPLAYWIDTH // 6), int(DISPLAYHEIGHT // 4)))
+                        DISPLAYSURF.blit(text, (int(DISPLAYWIDTH // 8), int(DISPLAYHEIGHT // 4)))
                         pygame.display.update()
                         time.sleep(5)
 
                 # If the user presses the "c" key and the board is full, the board will be checked for a validity
-                if event.key == pygame.K_c and find_empty_space(gameboard) is None:
-                    print('here')
-                    font = pygame.font.SysFont("Arial", 50)
+                if event.key == pygame.K_c and sudoku.find_empty_space(gameboard) is None:
                     isvalid = validboard(gameboard)
                     DISPLAYSURF.fill((255, 255, 255))
                     if isvalid is True:
+                        font = pygame.font.SysFont("Arial", 50)
                         text = font.render("Congratulations! You win! ", True, pygame.Color('red'))
                         DISPLAYSURF.blit(text, (int(DISPLAYWIDTH // 6), int(DISPLAYHEIGHT // 4)))
                         pygame.display.update()
                         time.sleep(5)
-                        pygame.quit()
-                        sys.exit()
                     else:
+                        font = pygame.font.SysFont("Arial", 36)
                         text = font.render("Oh no! Your Board is incorrect!", True, pygame.Color('red'))
                         DISPLAYSURF.blit(text, (int(DISPLAYWIDTH // 6), int(DISPLAYHEIGHT // 4)))
                         pygame.display.update()
                         time.sleep(5)
+
+                # If the "n" key is pressed then a new board is loaded onto the screen to play
+                if event.key == pygame.K_n:
+                    board_generator.setmasterboard()
+                    gameboard = board_generator.getmasterboard()
+                    resetboolboard()
+                    fillbooleanboard(gameboard)
 
             # If the mouse button is pressed, the key is reset to None and the position is found in terms of square
             if event.type == pygame.MOUSEBUTTONDOWN:
